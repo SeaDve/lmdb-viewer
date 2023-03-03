@@ -1,0 +1,6 @@
+data/io.github.seadve.LmdbViewer.desktop.in.in
+data/io.github.seadve.LmdbViewer.gschema.xml.in
+data/io.github.seadve.LmdbViewer.metainfo.xml.in.in
+data/resources/ui/shortcuts.ui
+data/resources/ui/window.ui
+src/application.rs
