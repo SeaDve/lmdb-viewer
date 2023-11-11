@@ -2,4 +2,4 @@
 
 Browse LMDB Databases
 
-LMDB Viewer is built with GTK4 and Rust.
+LMDB Viewer is a **WIP** database viewer built with GTK4 and Rust.

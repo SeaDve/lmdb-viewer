@@ -18,42 +18,47 @@
   </menu>
   <template class="LvWindow" parent="AdwApplicationWindow">
     <property name="content">
-      <object class="AdwToolbarView">
-        <property name="top-bar-style">raised</property>
-        <child type="top">
-          <object class="GtkHeaderBar">
-            <child>
-              <object class="GtkButton">
-                <property name="label" translatable="yes">Open</property>
-                <property name="action-name">win.open-database</property>
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <property name="child">
+          <object class="AdwToolbarView">
+            <property name="top-bar-style">raised</property>
+            <child type="top">
+              <object class="GtkHeaderBar">
+                <child>
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">Open</property>
+                    <property name="action-name">win.open-env</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDropDown" id="drop_down">
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="tooltip-text">Reload</property>
+                    <property name="icon-name">refresh-large-symbolic</property>
+                    <property name="action-name">win.reload-env</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkMenuButton">
+                    <property name="icon-name">open-menu-symbolic</property>
+                    <property name="menu-model">primary_menu</property>
+                    <property name="primary">True</property>
+                  </object>
+                </child>
               </object>
             </child>
-            <child>
-              <object class="GtkButton">
-                <property name="label" translatable="yes">Update</property>
-                <property name="action-name">win.update-database</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkDropDown" id="drop_down">
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkMenuButton">
-                <property name="icon-name">open-menu-symbolic</property>
-                <property name="menu-model">primary_menu</property>
-                <property name="primary">True</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <property name="content">
-          <object class="GtkScrolledWindow">
-            <property name="hexpand">True</property>
-            <property name="child">
-              <object class="GtkColumnView" id="column_view">
-                <property name="model">
-                  <object class="GtkNoSelection" id="column_view_model">
+            <property name="content">
+              <object class="GtkScrolledWindow">
+                <property name="hexpand">True</property>
+                <property name="child">
+                  <object class="GtkColumnView" id="column_view">
+                    <property name="model">
+                      <object class="GtkNoSelection" id="column_view_model">
+                      </object>
+                    </property>
                   </object>
                 </property>
               </object>

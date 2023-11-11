@@ -23,6 +23,8 @@ mod imp {
     #[template(resource = "/io/github/seadve/LmdbViewer/ui/window.ui")]
     pub struct Window {
         #[template_child]
+        pub(super) toast_overlay: TemplateChild<adw::ToastOverlay>,
+        #[template_child]
         pub(super) drop_down: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) column_view: TemplateChild<gtk::ColumnView>,
@@ -41,30 +43,26 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            klass.install_action_async("win.open-database", None, |obj, _, _| async move {
-                if let Err(err) = obj.open_database().await {
-                    tracing::error!("Failed to open database: {:?}", &err);
-
-                    let dialog = adw::MessageDialog::builder()
-                        .heading(gettext("Cannot Open Database"))
-                        .body(err.to_string())
-                        .transient_for(&obj)
-                        .modal(true)
-                        .build();
-                    dialog.add_response("ok", &gettext("Ok, Got It"));
-                    dialog.set_default_response(Some("ok"));
-                    dialog.present();
+            klass.install_action_async("win.open-env", None, |obj, _, _| async move {
+                if let Err(err) = obj.open_env().await {
+                    if !err
+                        .downcast_ref::<glib::Error>()
+                        .is_some_and(|error| error.matches(gtk::DialogError::Dismissed))
+                    {
+                        tracing::error!("Failed to open env: {:?}", &err);
+                        obj.add_message_toast(&gettext("Failed to open env"));
+                    }
                 }
             });
 
-            klass.install_action("win.update-database", None, move |obj, _, _| {
+            klass.install_action("win.reload-env", None, move |obj, _, _| {
                 let imp = obj.imp();
 
                 if let Some(model) = imp.drop_down.model() {
                     let db = model.downcast_ref::<Database>().unwrap();
 
                     if let Err(err) = db.reload() {
-                        tracing::error!("Failed to reload database on drop down: {:?}", &err);
+                        tracing::error!("Failed to reload env on drop down: {:?}", &err);
                     }
                 }
 
@@ -72,7 +70,7 @@ mod imp {
                     let db = model.downcast_ref::<Database>().unwrap();
 
                     if let Err(err) = db.reload() {
-                        tracing::error!("Failed to reload database on view: {:?}", &err);
+                        tracing::error!("Failed to reload env on view: {:?}", &err);
                     }
                 }
             });
@@ -125,7 +123,12 @@ impl Window {
         glib::Object::builder().property("application", app).build()
     }
 
-    async fn open_database(&self) -> Result<()> {
+    fn add_message_toast(&self, message: &str) {
+        let toast = adw::Toast::new(message);
+        self.imp().toast_overlay.add_toast(toast);
+    }
+
+    async fn open_env(&self) -> Result<()> {
         let imp = self.imp();
 
         let dialog = gtk::FileDialog::builder()
@@ -133,30 +136,17 @@ impl Window {
             .modal(true)
             .build();
 
-        let res = dialog.select_folder_future(Some(self)).await;
-
-        let db_dir = match res {
-            Ok(db_dir) => db_dir,
-            Err(err) => {
-                if err.matches(gtk::DialogError::Dismissed)
-                    | err.matches(gtk::DialogError::Cancelled)
-                {
-                    return Ok(());
-                } else {
-                    return Err(err.into());
-                }
-            }
-        };
+        let folder = dialog.select_folder_future(Some(self)).await?;
 
         let env = unsafe {
             heed::EnvOpenOptions::new()
                 .map_size(100 * 1024 * 1024) // 100 MiB
                 .max_dbs(100)
                 .flags(EnvFlags::READ_ONLY | EnvFlags::NO_LOCK)
-                .open(db_dir.path().expect("file must have a path"))
-                .with_context(|| format!("Failed to open env at `{}`", db_dir.uri()))?
+                .open(folder.path().expect("file must have a path"))
+                .with_context(|| format!("Failed to open env at `{}`", folder.uri()))?
         };
-        tracing::debug!("Opened env at `{}`", db_dir.uri());
+        tracing::debug!("Opened env at `{}`", folder.uri());
 
         let db = Database::load(&env, None).context("Failed to load unnamed db")?;
         imp.drop_down.set_model(Some(&db));
@@ -251,14 +241,22 @@ impl Window {
                 if let Some(env) = env.as_ref() {
                     let selected_item = drop_down.selected_item();
 
+                    imp.column_view_model.set_model(gtk::SelectionModel::NONE);
+
                     if let Some(item) = selected_item {
                         let item = item.downcast_ref::<DatabaseItem>().unwrap();
                         let item_key = item.key();
                         let db_name = std::str::from_utf8(&item_key).unwrap();
-                        let db = Database::load(env, Some(db_name)).unwrap();
-                        imp.column_view_model.set_model(Some(&db));
-                    } else {
-                        imp.column_view_model.set_model(gtk::SelectionModel::NONE);
+
+                        match Database::load(env, Some(db_name)) {
+                            Ok(db) => {
+                                imp.column_view_model.set_model(Some(&db));
+                            }
+                            Err(err) => {
+                                tracing::error!("Failed to load db: {:?}", &err);
+                                obj.add_message_toast(&format!("Failed to load “{}”", db_name));
+                            }
+                        }
                     }
                 } else {
                     tracing::error!("No env set!");
