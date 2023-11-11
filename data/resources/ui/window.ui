@@ -19,6 +19,7 @@
   <template class="LvWindow" parent="AdwApplicationWindow">
     <property name="content">
       <object class="AdwToolbarView">
+        <property name="top-bar-style">raised</property>
         <child type="top">
           <object class="GtkHeaderBar">
             <child>
