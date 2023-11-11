@@ -104,10 +104,7 @@ impl Application {
     fn show_about_dialog(&self) {
         let dialog = gtk::AboutDialog::builder()
             .logo_icon_name(APP_ID)
-            // Insert your license of choice here
-            // .license_type(gtk::License::MitX11)
-            // Insert your website here
-            // .website("https://gitlab.gnome.org/bilelmoussaoui/lmdb-viewer/")
+            .license_type(gtk::License::Gpl30)
             .version(VERSION)
             .transient_for(&self.main_window())
             .translator_credits(gettext("translator-credits"))

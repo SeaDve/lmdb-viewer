@@ -3,7 +3,7 @@
   <id>@app-id@</id>
   <metadata_license>CC0</metadata_license>
   <!-- Insert your license of choice here -->
-  <!-- <project_license>MIT</project_license> -->
+  <project_license>GPL-3.0-or-later</project_license>
   <name>LMDB Viewer</name>
   <summary>Write a GTK + Rust application</summary>
   <description>
@@ -11,12 +11,12 @@
   </description>
   <screenshots>
     <screenshot type="default">
-      <image>https://gitlab.gnome.org/bilelmoussaoui/lmdb-viewer/raw/master/data/resources/screenshots/screenshot1.png</image>
+      <image>https://github.com/SeaDve/lmdb-viewer/raw/master/data/resources/screenshots/screenshot1.png</image>
       <caption>Main window</caption>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://gitlab.gnome.org/bilelmoussaoui/lmdb-viewer</url>
-  <url type="bugtracker">https://gitlab.gnome.org/bilelmoussaoui/lmdb-viewer/issues</url>
+  <url type="homepage">https://github.com/SeaDve/lmdb-viewer</url>
+  <url type="bugtracker">https://github.com/SeaDve/lmdb-viewer</url>
   <content_rating type="oars-1.0"/>
   <releases>
     <release version="0.1.0" date="2019-07-11"/>
